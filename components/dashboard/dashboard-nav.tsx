@@ -76,7 +76,7 @@ export function DashboardNav() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">Jane Smith</p>
+                    <p className="text-sm font-medium">Ashley Strong</p>
                     <p className="text-xs text-muted-foreground">jane@example.com</p>
                   </div>
                 </DropdownMenuLabel>

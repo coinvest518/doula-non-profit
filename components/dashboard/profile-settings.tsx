@@ -14,7 +14,7 @@ import { Loader2, Upload } from "lucide-react"
 export function ProfileSettings() {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
-    fullName: "Jane Smith",
+    fullName: "Ashley Strong",
     email: "jane@example.com",
     location: "Atlanta, Georgia",
     bio: "Passionate about supporting families through pregnancy and birth.",

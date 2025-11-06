@@ -118,7 +118,7 @@ export function SignupForm() {
         <Input
           id="fullName"
           type="text"
-          placeholder="Jane Smith"
+          placeholder="Ashley Strong"
           value={formData.fullName}
           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
           required

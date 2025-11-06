@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { FAQModal } from "@/components/faq-modal"
 import { GraduationCap, Facebook, Instagram, Linkedin, Mail } from "lucide-react"
 
 export function Footer() {
@@ -81,19 +82,21 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-muted-foreground transition-colors hover:text-foreground">
+                <a href="https://medium.com/@coinvestinc/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">
                   Blog
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/faq" className="text-muted-foreground transition-colors hover:text-foreground">
-                  FAQ
-                </Link>
+                <FAQModal>
+                  <button className="text-muted-foreground transition-colors hover:text-foreground text-left">
+                    FAQ
+                  </button>
+                </FAQModal>
               </li>
               <li>
-                <Link href="/support" className="text-muted-foreground transition-colors hover:text-foreground">
+                <a href="mailto:Ashley.strong@fortisproles.org" className="text-muted-foreground transition-colors hover:text-foreground">
                   Support
-                </Link>
+                </a>
               </li>
             </ul>
           </div>

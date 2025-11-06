@@ -6,7 +6,7 @@ import { Award, Download, Share2, Printer, CheckCircle2 } from "lucide-react"
 // Mock certificate data - would come from database
 const certificateData = {
   id: "CERT-2024-001",
-  recipientName: "Jane Smith",
+  recipientName: "Ashley Strong",
   courseName: "Complete Doula Certification Program",
   issueDate: "March 15, 2024",
   expiryDate: "March 15, 2027",
