@@ -26,10 +26,15 @@ export function AIPublicChat() {
   const [isLoading, setIsLoading] = useState(false)
   const [usageCount, setUsageCount] = useState(0)
   const maxFreeUses = 2
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight
+      }
+    }
   }
 
   useEffect(() => {
@@ -102,7 +107,7 @@ export function AIPublicChat() {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message, index) => (
               <div
@@ -143,7 +148,7 @@ export function AIPublicChat() {
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} />
+
           </div>
         </ScrollArea>
         <div className="border-t p-4">
