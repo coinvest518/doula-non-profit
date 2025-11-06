@@ -2,11 +2,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Users, BookOpen, Briefcase, ExternalLink } from "lucide-react"
+import { Navigation } from "@/components/navigation"
 import Link from "next/link"
 
 export default function InvestorsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      <Navigation />
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
         <div className="text-center mb-16">
@@ -36,7 +38,7 @@ export default function InvestorsPage() {
             </p>
             <div className="pt-4">
               <Button asChild variant="outline">
-                <Link href="https://fortisproles.com" target="_blank" rel="noopener noreferrer">
+                <Link href="/about">
                   Learn more <ExternalLink className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
