@@ -3,13 +3,13 @@ import { GraduationCap, Facebook, Instagram, Linkedin, Mail } from "lucide-react
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-muted/30">
+    <footer className="border-t border-border bg-muted/30" suppressHydrationWarning>
       <div className="container mx-auto px-4 py-12">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Link href="/" className="flex items-center gap-2 font-serif text-lg font-medium">
+            <Link href="/" className="flex items-center gap-2 font-serif text-lg font-medium" suppressHydrationWarning>
               <GraduationCap className="h-5 w-5 text-primary" />
-              <span>Atlanta Doula Academy</span>
+              <span>Fortis Porles Doula Academy</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
               Professional doula and maternity certification programs based in Atlanta, Georgia.
@@ -28,7 +28,7 @@ export function Footer() {
                 <span className="sr-only">LinkedIn</span>
               </a>
               <a
-                href="mailto:info@atlantadoulaacademy.com"
+                href="mailto:Ashley.strong@fortisproles.org"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Mail className="h-5 w-5" />
@@ -107,9 +107,9 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-muted-foreground transition-colors hover:text-foreground">
+                <a href="mailto:Ashley.strong@fortisproles.org" className="text-muted-foreground transition-colors hover:text-foreground">
                   Contact
-                </Link>
+                </a>
               </li>
               <li>
                 <Link href="/privacy" className="text-muted-foreground transition-colors hover:text-foreground">
@@ -126,7 +126,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Atlanta Doula Academy. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Fortis Porles Doula Academy. All rights reserved.</p>
         </div>
       </div>
     </footer>

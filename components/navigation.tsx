@@ -9,12 +9,12 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" suppressHydrationWarning>
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-serif text-xl font-medium">
+          <Link href="/" className="flex items-center gap-2 font-serif text-xl font-medium" suppressHydrationWarning>
             <GraduationCap className="h-6 w-6 text-primary" />
-            <span className="text-balance">Atlanta Doula Academy</span>
+            <span className="text-balance">Fortis Porles Doula Academy</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -37,12 +37,12 @@ export function Navigation() {
             >
               About
             </Link>
-            <Link
-              href="/contact"
+            <a
+              href="mailto:Ashley.strong@fortisproles.org"
               className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
             >
               Contact
-            </Link>
+            </a>
           </div>
 
           <div className="hidden items-center gap-3 md:flex">
@@ -85,13 +85,13 @@ export function Navigation() {
               >
                 About
               </Link>
-              <Link
-                href="/contact"
+              <a
+                href="mailto:Ashley.strong@fortisproles.org"
                 className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Contact
-              </Link>
+              </a>
               <div className="flex flex-col gap-2 pt-2">
                 <Button variant="ghost" asChild className="w-full">
                   <Link href="/login">Sign In</Link>

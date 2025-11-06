@@ -1,9 +1,8 @@
 export interface Profile {
   id: string
-  email: string
+  email: string | null
   full_name: string | null
   avatar_url: string | null
-  location: string | null
   created_at: string
   updated_at: string
 }
@@ -13,13 +12,11 @@ export interface Course {
   title: string
   slug: string
   description: string | null
-  long_description: string | null
-  thumbnail_url: string | null
-  price: number
+  price: number | null
   duration_hours: number | null
-  level: "beginner" | "intermediate" | "advanced"
-  is_published: boolean
-  certification_included: boolean
+  level: "beginner" | "intermediate" | "advanced" | null
+  image_url: string | null
+  is_active: boolean
   created_at: string
   updated_at: string
 }
@@ -51,9 +48,7 @@ export interface Enrollment {
   course_id: string
   enrolled_at: string
   completed_at: string | null
-  progress_percentage: number
-  payment_status: "pending" | "completed" | "failed"
-  stripe_payment_id: string | null
+  progress: number
 }
 
 export interface Certification {
@@ -63,7 +58,7 @@ export interface Certification {
   certificate_number: string
   issued_at: string
   expires_at: string | null
-  pdf_url: string | null
+  is_valid: boolean
 }
 
 export interface DigitalProduct {

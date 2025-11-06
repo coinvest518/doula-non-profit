@@ -34,7 +34,7 @@ export function DashboardNav() {
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2 font-serif text-xl font-medium">
               <GraduationCap className="h-6 w-6 text-primary" />
-              <span className="hidden sm:inline">Atlanta Doula Academy</span>
+              <span className="hidden sm:inline">Fortis Porles Doula Academy</span>
             </Link>
 
             <div className="hidden items-center gap-1 md:flex">

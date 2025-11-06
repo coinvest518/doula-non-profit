@@ -19,7 +19,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Atlanta Doula Academy - Professional Doula & Maternity Certification",
+  title: "Fortis Porles Doula Academy - Professional Doula & Maternity Certification",
   description:
     "Get certified as a professional doula with our comprehensive training programs. Based in Atlanta, Georgia, serving birth workers nationwide.",
   generator: "v0.app",

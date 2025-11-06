@@ -243,7 +243,7 @@ export default function HomePage() {
           <div className="container mx-auto">
             <div className="mb-12 text-center">
               <h2 className="font-serif text-3xl font-medium text-balance md:text-4xl">
-                Why Choose Atlanta Doula Academy
+                Why Choose Fortis Porles Doula Academy
               </h2>
               <p className="mt-4 text-lg text-muted-foreground text-pretty">
                 We provide comprehensive training and ongoing support for your doula journey
@@ -332,7 +332,7 @@ export default function HomePage() {
                       <Link href="/signup">Get Started Today</Link>
                     </Button>
                     <Button size="lg" variant="outline" asChild>
-                      <Link href="/contact">Contact Us</Link>
+                      <a href="mailto:Ashley.strong@fortisproles.org">Contact Us</a>
                     </Button>
                   </div>
                   <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">

@@ -10,7 +10,7 @@ export default function CheckoutPage() {
         <div className="container mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-serif text-xl font-medium">
             <GraduationCap className="h-6 w-6 text-primary" />
-            <span>Atlanta Doula Academy</span>
+            <span>Fortis Porles Doula Academy</span>
           </Link>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/courses">
