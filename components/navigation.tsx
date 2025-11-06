@@ -44,6 +44,12 @@ export function Navigation() {
             >
               Certificates
             </Link>
+            <Link
+              href="/investors"
+              className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
+            >
+              Investors
+            </Link>
             <ContactModal>
               <button className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground">
                 Contact
@@ -97,6 +103,13 @@ export function Navigation() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Certificates
+              </Link>
+              <Link
+                href="/investors"
+                className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Investors
               </Link>
               <ContactModal>
                 <button 
