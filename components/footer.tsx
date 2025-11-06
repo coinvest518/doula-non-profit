@@ -10,7 +10,7 @@ export function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2 font-serif text-lg font-medium" suppressHydrationWarning>
               <GraduationCap className="h-5 w-5 text-primary" />
-              <span>Fortis Porles Doula Academy</span>
+              <span>Fortis Proles Doula Academy</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
               Professional doula and maternity certification programs based in Atlanta, Georgia.
@@ -129,7 +129,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Fortis Porles Doula Academy. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Fortis Proles Doula Academy. All rights reserved.</p>
         </div>
       </div>
     </footer>

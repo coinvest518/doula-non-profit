@@ -15,7 +15,7 @@ export function Navigation() {
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-serif text-xl font-medium" suppressHydrationWarning>
             <GraduationCap className="h-6 w-6 text-primary" />
-            <span className="text-balance">Fortis Porles Doula Academy</span>
+            <span className="text-balance">Fortis Proles Doula Academy</span>
           </Link>
 
           {/* Desktop Navigation */}

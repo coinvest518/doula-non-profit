@@ -42,7 +42,7 @@ export default function CertificatePage() {
                 <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
                   Certificate of Completion
                 </p>
-                <h2 className="mt-4 font-serif text-4xl font-medium md:text-5xl">Fortis Porles Doula Academy</h2>
+                <h2 className="mt-4 font-serif text-4xl font-medium md:text-5xl">Fortis Proles Doula Academy</h2>
               </div>
 
               <div className="space-y-2">

@@ -263,7 +263,7 @@ export default function HomePage() {
           <div className="container mx-auto">
             <div className="mb-12 text-center">
               <h2 className="font-serif text-3xl font-medium text-balance md:text-4xl">
-                Why Choose Fortis Porles Doula Academy
+                Why Choose Fortis Proles Doula Academy
               </h2>
               <p className="mt-4 text-lg text-muted-foreground text-pretty">
                 We provide comprehensive training and ongoing support for your doula journey

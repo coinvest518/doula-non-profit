@@ -10,7 +10,7 @@ export default function LoginPage() {
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-2 font-serif text-2xl font-medium" suppressHydrationWarning>
             <GraduationCap className="h-7 w-7 text-primary" />
-            <span>Fortis Porles Doula Academy</span>
+            <span>Fortis Proles Doula Academy</span>
           </Link>
           <p className="mt-2 text-sm text-muted-foreground">Welcome back to your learning journey</p>
         </div>
