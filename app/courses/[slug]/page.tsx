@@ -109,6 +109,9 @@ export default function CourseDetailPage() {
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <Badge>{courseData.level}</Badge>
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
+                    Coming Soon
+                  </Badge>
                   <div className="flex items-center gap-1 text-sm">
                     <Star className="h-4 w-4 fill-primary text-primary" />
                     <span className="font-medium">{courseData.rating}</span>
@@ -166,12 +169,12 @@ export default function CourseDetailPage() {
                 <CardContent className="p-6">
                   <div className="mb-6">
                     <p className="font-serif text-3xl font-medium">${courseData.price}</p>
-                    <p className="text-sm text-muted-foreground">One-time payment, lifetime access</p>
+                    <p className="text-sm text-muted-foreground">Enrollment opens soon</p>
                   </div>
 
                   <div className="space-y-3">
-                    <Button size="lg" className="w-full" asChild>
-                      <Link href="/signup">Enroll Now</Link>
+                    <Button size="lg" className="w-full" disabled>
+                      Coming Soon - Notify Me
                     </Button>
                     <Button size="lg" variant="outline" className="w-full bg-transparent">
                       Preview Course
@@ -392,8 +395,8 @@ export default function CourseDetailPage() {
                   Join {courseData.students.toLocaleString()} students already enrolled
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                  <Button size="lg" asChild>
-                    <Link href="/signup">Enroll Now - ${courseData.price}</Link>
+                  <Button size="lg" disabled>
+                    Coming Soon - ${courseData.price}
                   </Button>
                   <Button size="lg" variant="outline" asChild>
                     <Link href="/courses">View All Courses</Link>

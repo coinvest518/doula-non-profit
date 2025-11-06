@@ -74,7 +74,12 @@ export function CourseGrid() {
             </div>
             <CardContent className="p-6">
               <div className="mb-3 flex items-center justify-between">
-                <Badge>{course.level}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge>{course.level}</Badge>
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
+                    Coming Soon
+                  </Badge>
+                </div>
                 <div className="flex items-center gap-1 text-sm">
                   <Star className="h-4 w-4 fill-primary text-primary" />
                   <span className="font-medium">{course.rating}</span>
@@ -97,9 +102,12 @@ export function CourseGrid() {
               </div>
 
               <div className="mt-6 flex items-center justify-between">
-                <p className="font-serif text-2xl font-medium">${course.price}</p>
+                <div>
+                  <p className="font-serif text-2xl font-medium">${course.price}</p>
+                  <p className="text-xs text-muted-foreground">Enrollment opens soon</p>
+                </div>
                 <Button asChild>
-                  <Link href={`/courses/${course.slug}`}>View Course</Link>
+                  <Link href={`/courses/${course.slug}`}>View Details</Link>
                 </Button>
               </div>
             </CardContent>

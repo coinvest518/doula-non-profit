@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { ContactModal } from "@/components/contact-modal"
 import { Menu, X, GraduationCap } from "lucide-react"
 import { useState } from "react"
 
@@ -37,12 +38,11 @@ export function Navigation() {
             >
               About
             </Link>
-            <a
-              href="mailto:Ashley.strong@fortisproles.org"
-              className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
-            >
-              Contact
-            </a>
+            <ContactModal>
+              <button className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground">
+                Contact
+              </button>
+            </ContactModal>
           </div>
 
           <div className="hidden items-center gap-3 md:flex">
@@ -85,13 +85,14 @@ export function Navigation() {
               >
                 About
               </Link>
-              <a
-                href="mailto:Ashley.strong@fortisproles.org"
-                className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contact
-              </a>
+              <ContactModal>
+                <button 
+                  className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground text-left"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Contact
+                </button>
+              </ContactModal>
               <div className="flex flex-col gap-2 pt-2">
                 <Button variant="ghost" asChild className="w-full">
                   <Link href="/login">Sign In</Link>

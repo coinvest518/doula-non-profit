@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
+import { AIChat } from "@/components/dashboard/ai-chat"
 import Link from "next/link"
 import { BookOpen, Award, Clock, TrendingUp, PlayCircle, CheckCircle2 } from "lucide-react"
 
@@ -93,6 +94,16 @@ export function DashboardOverview() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+        <div className="space-y-8">
+          {/* AI Chat Assistant */}
+          <div>
+            <h2 className="mb-4 font-serif text-2xl font-medium">AI Assistant</h2>
+            <AIChat />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_400px]">
         <div className="space-y-8">
           {/* Continue Learning */}
           <div>

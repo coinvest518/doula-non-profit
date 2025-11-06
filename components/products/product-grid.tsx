@@ -14,7 +14,7 @@ const products = [
     category: "Templates",
     rating: 4.8,
     downloads: 1250,
-    image: "/birth-plan-templates.jpg",
+    image: "/Birthplan.png",
   },
   {
     id: "postpartum-care-guide",
@@ -25,7 +25,7 @@ const products = [
     category: "Guides",
     rating: 4.9,
     downloads: 2100,
-    image: "/postpartum-care-guide.jpg",
+    image: "/postpordum.png",
   },
   {
     id: "doula-business-starter-kit",
@@ -36,7 +36,7 @@ const products = [
     category: "Business",
     rating: 4.9,
     downloads: 850,
-    image: "/doula-business-kit.jpg",
+    image: "/Businesskit.png",
   },
   {
     id: "labor-comfort-measures-posters",
@@ -47,18 +47,7 @@ const products = [
     category: "Resources",
     rating: 4.7,
     downloads: 1500,
-    image: "/labor-comfort-posters.jpg",
-  },
-  {
-    id: "client-intake-forms-package",
-    title: "Client Intake Forms Package",
-    slug: "client-intake-forms-package",
-    description: "Professional intake and assessment forms",
-    price: 34.99,
-    category: "Templates",
-    rating: 4.8,
-    downloads: 980,
-    image: "/client-intake-forms.jpg",
+    image: "/laborcomfort.png",
   },
   {
     id: "breastfeeding-support-guide",
@@ -69,7 +58,7 @@ const products = [
     category: "Guides",
     rating: 4.9,
     downloads: 1650,
-    image: "/breastfeeding-guide.jpg",
+    image: "BREASTFEEDING.png",
   },
 ]
 

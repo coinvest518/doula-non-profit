@@ -3,6 +3,7 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { AIPublicChat } from "@/components/ai-chat-public"
 import Link from "next/link"
 import {
   GraduationCap,
@@ -70,6 +71,25 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* AI Chat Section */}
+        <section className="border-b border-border px-4 py-16">
+          <div className="container mx-auto">
+            <div className="mx-auto max-w-4xl">
+              <div className="mb-8 text-center">
+                <h2 className="font-serif text-3xl font-medium text-balance md:text-4xl">
+                  Try Our AI Doula Assistant
+                </h2>
+                <p className="mt-4 text-lg text-muted-foreground text-pretty">
+                  Get instant answers to your pregnancy and birth questions. 2 free questions for visitors!
+                </p>
+              </div>
+              <div className="mx-auto max-w-2xl">
+                <AIPublicChat />
               </div>
             </div>
           </div>

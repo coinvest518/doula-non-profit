@@ -20,7 +20,7 @@ const productData = {
   downloads: 1250,
   fileType: "PDF & DOCX",
   fileSize: "2.5 MB",
-  image: "/birth-plan-templates.jpg",
+  image: "/Birthplan.png",
   features: [
     "3 customizable birth plan templates",
     "Hospital, home, and birth center versions",
@@ -256,19 +256,14 @@ export default function ProductDetailPage() {
             <div className="grid gap-6 md:grid-cols-3">
               {[
                 {
-                  title: "Client Intake Forms Package",
-                  price: 34.99,
-                  image: "/client-intake-forms.jpg",
-                },
-                {
                   title: "Doula Business Starter Kit",
                   price: 49.99,
-                  image: "/doula-business-kit.jpg",
+                  image: "/Businesskit.png",
                 },
                 {
                   title: "Labor Comfort Measures Poster Set",
                   price: 24.99,
-                  image: "/labor-comfort-posters.jpg",
+                  image: "/laborcomfort.png",
                 },
               ].map((product, index) => (
                 <Card key={index} className="overflow-hidden">

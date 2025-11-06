@@ -11,4 +11,3 @@ INSERT INTO digital_products (title, slug, description, price, category, is_publ
 ('Postpartum Care Guide for New Parents', 'postpartum-care-guide', 'Complete guide covering the first 6 weeks postpartum', 19.99, 'guides', true),
 ('Doula Business Starter Kit', 'doula-business-starter-kit', 'Everything you need to launch your doula practice', 49.99, 'business', true),
 ('Labor Comfort Measures Poster Set', 'labor-comfort-measures-posters', 'Visual guides for labor support techniques', 24.99, 'resources', true),
-('Client Intake Forms Package', 'client-intake-forms-package', 'Professional intake and assessment forms', 34.99, 'templates', true);
