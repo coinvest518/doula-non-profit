@@ -2,30 +2,63 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Award, Download, Share2, Printer, CheckCircle2 } from "lucide-react"
+import { getSupabaseServerClient } from "@/lib/supabase/server"
+import { notFound } from "next/navigation"
 
-// Mock certificate data - would come from database
-const certificateData = {
-  id: "CERT-2024-001",
-  recipientName: "Ashley Strong",
-  courseName: "Complete Doula Certification Program",
-  issueDate: "March 15, 2024",
-  expiryDate: "March 15, 2027",
-  instructorName: "Dr. Sarah Mitchell",
-  certificateNumber: "ADA-CD-2024-001",
-  completionDate: "March 15, 2024",
-  totalHours: 40,
+interface CertificatePageProps {
+  params: Promise<{
+    id: string
+  }>
 }
 
-export default function CertificatePage() {
+export default async function CertificatePage({ params }: CertificatePageProps) {
+  const { id } = await params
+  const supabase = await getSupabaseServerClient()
+
+  // Fetch certificate data with related course and user information
+  const { data: certificate, error } = await supabase
+    .from("certifications")
+    .select(`
+      *,
+      course:courses(
+        title,
+        duration_hours
+      ),
+      user:profiles(
+        full_name
+      )
+    `)
+    .eq("id", id)
+    .single()
+
+  if (error || !certificate) {
+    notFound()
+  }
+
+  // Format dates
+  const issueDate = certificate.issued_at 
+    ? new Date(certificate.issued_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    : "N/A"
+  
+  const expiryDate = certificate.expires_at
+    ? new Date(certificate.expires_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    : "No Expiration"
+
+  const isExpired = certificate.expires_at && new Date(certificate.expires_at) < new Date()
+  const recipientName = (certificate.user as any)?.full_name || "Certificate Holder"
+  const courseName = (certificate.course as any)?.title || "Course"
+  const totalHours = (certificate.course as any)?.duration_hours || 0
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-background to-muted/20 px-4 py-12">
       <div className="container mx-auto max-w-5xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="font-serif text-3xl font-medium">Professional Certificate</h1>
-            <p className="mt-2 text-muted-foreground">Certificate ID: {certificateData.certificateNumber}</p>
+            <p className="mt-2 text-muted-foreground">Certificate ID: {certificate.certificate_number}</p>
           </div>
-          <Badge>Verified</Badge>
+          <Badge variant={isExpired ? "destructive" : "default"}>
+            {isExpired ? "Expired" : "Verified"}
+          </Badge>
         </div>
 
         {/* Certificate Display */}
@@ -47,38 +80,40 @@ export default function CertificatePage() {
 
               <div className="space-y-2">
                 <p className="text-lg text-muted-foreground">This certifies that</p>
-                <p className="font-serif text-3xl font-medium md:text-4xl">{certificateData.recipientName}</p>
+                <p className="font-serif text-3xl font-medium md:text-4xl">{recipientName}</p>
                 <p className="text-lg text-muted-foreground">has successfully completed</p>
-                <p className="font-serif text-2xl font-medium md:text-3xl">{certificateData.courseName}</p>
+                <p className="font-serif text-2xl font-medium md:text-3xl">{courseName}</p>
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-8 text-sm">
                 <div>
                   <p className="text-muted-foreground">Completion Date</p>
-                  <p className="mt-1 font-medium">{certificateData.completionDate}</p>
+                  <p className="mt-1 font-medium">{issueDate}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total Hours</p>
-                  <p className="mt-1 font-medium">{certificateData.totalHours} hours</p>
+                  <p className="mt-1 font-medium">{totalHours} hours</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Certificate Number</p>
-                  <p className="mt-1 font-medium">{certificateData.certificateNumber}</p>
+                  <p className="mt-1 font-medium">{certificate.certificate_number}</p>
                 </div>
               </div>
 
               <div className="flex items-center justify-center gap-12 pt-8">
                 <div className="text-center">
                   <div className="h-px w-48 bg-border" />
-                  <p className="mt-2 text-sm font-medium">{certificateData.instructorName}</p>
+                  <p className="mt-2 text-sm font-medium">Ashley Strong</p>
                   <p className="text-xs text-muted-foreground">Lead Instructor</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                <span>Valid until {certificateData.expiryDate}</span>
-              </div>
+              {certificate.expires_at && (
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                  <CheckCircle2 className={`h-4 w-4 ${isExpired ? "text-destructive" : "text-primary"}`} />
+                  <span>{isExpired ? "Expired on" : "Valid until"} {expiryDate}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -108,15 +143,19 @@ export default function CertificatePage() {
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Issue Date</span>
-                  <span className="font-medium">{certificateData.issueDate}</span>
+                  <span className="font-medium">{issueDate}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Expiry Date</span>
-                  <span className="font-medium">{certificateData.expiryDate}</span>
-                </div>
+                {certificate.expires_at && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Expiry Date</span>
+                    <span className="font-medium">{expiryDate}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Status</span>
-                  <Badge variant="secondary">Active</Badge>
+                  <Badge variant={isExpired ? "destructive" : "secondary"}>
+                    {isExpired ? "Expired" : "Active"}
+                  </Badge>
                 </div>
               </div>
             </CardContent>
@@ -143,8 +182,8 @@ export default function CertificatePage() {
           <CardContent className="p-6">
             <h3 className="font-medium">About This Certification</h3>
             <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-              This certificate demonstrates successful completion of the {certificateData.courseName} at Atlanta Doula
-              Academy. The program includes {certificateData.totalHours} hours of comprehensive training in birth
+              This certificate demonstrates successful completion of the {courseName} at Fortis Proles Doula
+              Academy. The program includes {totalHours} hours of comprehensive training in birth
               support, prenatal care, labor techniques, and postpartum support. This certification is recognized by
               professional doula organizations and demonstrates competency in providing professional birth support
               services.

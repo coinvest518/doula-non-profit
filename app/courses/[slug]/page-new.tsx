@@ -7,65 +7,38 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Clock, Award, Star, Users, CheckCircle2, PlayCircle, FileText, Download, Globe, Infinity } from "lucide-react"
 import Link from "next/link"
-import EnrollmentButton from "@/components/enrollment-button"
-import { getSupabaseServerClient } from "@/lib/supabase/server"
-import { getCourseBySlug } from "@/lib/supabase/courses"
-import { getCourseProgress, getUserCertificate } from "@/lib/supabase/course-progress"
 import { notFound } from "next/navigation"
+import { getSupabaseServerClient } from "@/lib/supabase/server"
+import { getCourseBySlug, getCourseStats } from "@/lib/supabase/courses"
 
-interface CourseDetailPageProps {
-  params: Promise<{
-    slug: string
-  }>
-}
-
-export default async function CourseDetailPage({ params }: CourseDetailPageProps) {
-  const { slug } = await params
+export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
   const supabase = await getSupabaseServerClient()
-
-  const course = await getCourseBySlug(supabase, slug)
+  const course = await getCourseBySlug(supabase, params.slug)
 
   if (!course) {
-    console.log('Course not found for slug:', slug)
     notFound()
   }
 
-  console.log('Course found:', course.title)
+  // Get course statistics
+  const stats = await getCourseStats(supabase, course.id)
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Calculate total lessons and duration
+  const totalLessons = course.course_modules?.reduce(
+    (acc, module) => acc + (module.course_lessons?.length || 0),
+    0
+  ) || 0
 
-  let progress = null
-  let certificate = null
-  let isEnrolled = false
+  const totalDuration = course.course_modules?.reduce((acc, module) => {
+    const moduleDuration = module.course_lessons?.reduce(
+      (sum, lesson) => sum + (lesson.duration_minutes || 0),
+      0
+    ) || 0
+    return acc + moduleDuration
+  }, 0) || 0
 
-  if (user) {
-    const { data: enrollment } = await supabase
-      .from("enrollments")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("course_id", course.id)
-      .single()
-
-    isEnrolled = !!enrollment
-
-    if (isEnrolled) {
-      progress = await getCourseProgress(supabase, user.id, course.id)
-      certificate = await getUserCertificate(supabase, user.id, course.id)
-    }
-  }
-
-  const instructor = course.instructor || {
-    name: "Dr. Ashley Strong",
-    title: "Lead Doula Instructor",
-    bio: "With over 15 years of experience as a birth doula and educator, Dr. Strong has supported over 500 families through pregnancy, birth, and postpartum.",
-    avatar_url: "/logonon.png",
-  }
-
-  const modules = course.course_modules || []
+  // Default features based on course
   const features = [
-    "40 hours of comprehensive video training",
+    `${course.duration_hours || 0} hours of comprehensive video training`,
     "Downloadable resources and templates",
     "Interactive quizzes and assessments",
     "Certificate of completion",
@@ -86,75 +59,82 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
             <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                  <Badge>{course.level || 'Beginner'}</Badge>
+                  <Badge className="capitalize">{course.level || "Beginner"}</Badge>
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
+                    Coming Soon
+                  </Badge>
                   <div className="flex items-center gap-1 text-sm">
                     <Star className="h-4 w-4 fill-primary text-primary" />
                     <span className="font-medium">4.9</span>
                     <span className="text-muted-foreground">
-                      (342 reviews, 1250 students)
+                      ({stats.students} students)
                     </span>
                   </div>
                 </div>
 
                 <h1 className="font-serif text-4xl font-medium text-balance md:text-5xl">{course.title}</h1>
 
-                <p className="text-lg text-muted-foreground leading-relaxed">{course.description}</p>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  {course.long_description || course.description}
+                </p>
 
                 <div className="flex flex-wrap gap-6 text-sm">
                   <div className="flex items-center gap-2">
                     <Clock className="h-5 w-5 text-muted-foreground" />
-                    <span>40 hours of content</span>
+                    <span>{course.duration_hours} hours of content</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-muted-foreground" />
-                    <span>1,250 students enrolled</span>
+                    <span>{stats.students.toLocaleString()} students enrolled</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Infinity className="h-5 w-5 text-muted-foreground" />
                     <span>Lifetime access</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-muted-foreground" />
-                    <span>Certificate included</span>
-                  </div>
+                  {course.certification_included && (
+                    <div className="flex items-center gap-2">
+                      <Award className="h-5 w-5 text-muted-foreground" />
+                      <span>Certificate included</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <img
-                    src="/logonon.png"
-                    alt={instructor.name}
-                    className="h-12 w-12 rounded-full object-cover"
-                  />
-                  <div>
-                    <p className="font-medium">{instructor.name}</p>
-                    <p className="text-sm text-muted-foreground">{instructor.title}</p>
+                {course.instructor && (
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={course.instructor.avatar_url || "/logonon.png"}
+                      alt={course.instructor.name}
+                      className="h-12 w-12 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="font-medium">{course.instructor.name}</p>
+                      <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Enrollment Card */}
               <Card className="h-fit lg:sticky lg:top-20">
                 <div className="aspect-video overflow-hidden rounded-t-lg bg-muted">
                   <img
-                    src={course.thumbnail_url || "/doula-certification-training-classroom.jpg"}
+                    src={course.thumbnail_url || "/placeholder.svg"}
                     alt={course.title}
                     className="h-full w-full object-cover"
                   />
-
                 </div>
                 <CardContent className="p-6">
                   <div className="mb-6">
-                    <p className="font-serif text-3xl font-medium">${course.price || 497}</p>
+                    <p className="font-serif text-3xl font-medium">${course.price}</p>
+                    <p className="text-sm text-muted-foreground">Enrollment opens soon</p>
                   </div>
 
                   <div className="space-y-3">
-                    <EnrollmentButton 
-                      courseSlug={slug} 
-                      size="lg" 
-                      className="w-full"
-                    />
-                    <Button size="lg" variant="outline" className="w-full bg-transparent" asChild>
-                      <Link href={`/courses/${slug}/preview`}>Preview Course</Link>
+                    <Button size="lg" className="w-full" disabled>
+                      Coming Soon - Notify Me
+                    </Button>
+                    <Button size="lg" variant="outline" className="w-full bg-transparent">
+                      Preview Course
                     </Button>
                   </div>
 
@@ -163,7 +143,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                     <div className="space-y-2 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <PlayCircle className="h-4 w-4" />
-                        <span>40 hours of video content</span>
+                        <span>{course.duration_hours} hours of video content</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4" />
@@ -177,10 +157,12 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                         <Globe className="h-4 w-4" />
                         <span>Access on all devices</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Award className="h-4 w-4" />
-                        <span>Certificate of completion</span>
-                      </div>
+                      {course.certification_included && (
+                        <div className="flex items-center gap-2">
+                          <Award className="h-4 w-4" />
+                          <span>Certificate of completion</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2">
                         <Infinity className="h-4 w-4" />
                         <span>Lifetime access</span>
@@ -208,41 +190,50 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                   <div>
                     <h2 className="font-serif text-2xl font-medium">Course Curriculum</h2>
                     <p className="mt-2 text-muted-foreground">
-                      {course.course_modules?.length || 0} modules • {course.duration_hours || 40} hours total
+                      {course.course_modules?.length || 0} modules • {totalLessons} lessons • {Math.round(totalDuration / 60)} hours total
                     </p>
                   </div>
 
                   <Accordion type="single" collapsible className="w-full">
-                    {course.course_modules?.map((module: any, index: number) => (
-                      <AccordionItem key={index} value={`module-${index}`}>
+                    {course.course_modules?.map((module, index) => (
+                      <AccordionItem key={module.id} value={`module-${index}`}>
                         <AccordionTrigger className="text-left">
                           <div className="flex items-center gap-3">
                             <span className="font-medium">
                               Module {index + 1}: {module.title}
                             </span>
-                            <span className="text-sm text-muted-foreground">({module.course_lessons?.length || 0} lessons)</span>
+                            <span className="text-sm text-muted-foreground">
+                              ({module.course_lessons?.length || 0} lessons)
+                            </span>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-2 pl-4">
-                            {module.course_lessons?.map((lesson: any, lessonIndex: number) => (
-                              <div key={lessonIndex} className="flex items-center justify-between py-2">
+                            {module.course_lessons?.map((lesson, lessonIndex) => (
+                              <div key={lesson.id} className="flex items-center justify-between py-2">
                                 <div className="flex items-center gap-3">
-                                  {lesson.type === "video" ? (
+                                  {lesson.video_url ? (
                                     <PlayCircle className="h-4 w-4 text-muted-foreground" />
                                   ) : (
                                     <FileText className="h-4 w-4 text-muted-foreground" />
                                   )}
                                   <span className="text-sm">{lesson.title}</span>
+                                  {lesson.is_free_preview && (
+                                    <Badge variant="secondary" className="text-xs">Free Preview</Badge>
+                                  )}
                                 </div>
-                                <span className="text-sm text-muted-foreground">{lesson.duration_minutes} min</span>
+                                <span className="text-sm text-muted-foreground">
+                                  {lesson.duration_minutes} min
+                                </span>
                               </div>
                             ))}
                           </div>
                         </AccordionContent>
                       </AccordionItem>
                     ))}
-                  </Accordion>                  <Card className="bg-muted/30">
+                  </Accordion>
+
+                  <Card className="bg-muted/30">
                     <CardContent className="p-6">
                       <h3 className="font-medium">What you'll learn</h3>
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -262,37 +253,39 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                     <h2 className="font-serif text-2xl font-medium">Your Instructor</h2>
                   </div>
 
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-6">
-                        <img
-                          src="/logonon.png"
-                          alt={instructor.name}
-                          className="h-24 w-24 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-serif text-xl font-medium">{instructor.name}</h3>
-                          <p className="text-sm text-muted-foreground">{instructor.title}</p>
-                          <p className="mt-4 leading-relaxed">{instructor.bio}</p>
+                  {course.instructor && (
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-6">
+                          <img
+                            src={course.instructor.avatar_url || "/placeholder.svg"}
+                            alt={course.instructor.name}
+                            className="h-24 w-24 rounded-full object-cover"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-serif text-xl font-medium">{course.instructor.name}</h3>
+                            <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
+                            <p className="mt-4 leading-relaxed">{course.instructor.bio}</p>
 
-                          <div className="mt-6 flex gap-6 text-sm">
-                            <div>
-                              <p className="font-medium">1,250</p>
-                              <p className="text-muted-foreground">Students</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">4.9</p>
-                              <p className="text-muted-foreground">Rating</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">8</p>
-                              <p className="text-muted-foreground">Courses</p>
+                            <div className="mt-6 flex gap-6 text-sm">
+                              <div>
+                                <p className="font-medium">{stats.students.toLocaleString()}</p>
+                                <p className="text-muted-foreground">Students</p>
+                              </div>
+                              <div>
+                                <p className="font-medium">4.9</p>
+                                <p className="text-muted-foreground">Rating</p>
+                              </div>
+                              <div>
+                                <p className="font-medium">8</p>
+                                <p className="text-muted-foreground">Courses</p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="reviews" className="mt-8 space-y-6">
@@ -304,55 +297,14 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                         <span className="font-serif text-3xl font-medium">4.9</span>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        <p>342 reviews</p>
-                        <p>1,250 students</p>
+                        <p>Coming soon</p>
+                        <p>{stats.students.toLocaleString()} students</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    {[
-                      {
-                        name: "Jennifer Martinez",
-                        rating: 5,
-                        date: "2 weeks ago",
-                        review:
-                          "This course exceeded my expectations! The content is comprehensive and the instructor is incredibly knowledgeable. I feel confident starting my doula practice.",
-                      },
-                      {
-                        name: "Amanda Chen",
-                        rating: 5,
-                        date: "1 month ago",
-                        review:
-                          "Best investment I've made in my career. The practical skills and business guidance are invaluable. Highly recommend to anyone interested in becoming a doula.",
-                      },
-                      {
-                        name: "Rachel Thompson",
-                        rating: 4,
-                        date: "2 months ago",
-                        review:
-                          "Great course with lots of useful information. The video quality is excellent and the resources are very helpful. Would love to see more case studies included.",
-                      },
-                    ].map((review, index) => (
-                      <Card key={index}>
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="font-medium">{review.name}</p>
-                              <div className="mt-1 flex items-center gap-2">
-                                <div className="flex">
-                                  {Array.from({ length: review.rating }).map((_, i) => (
-                                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                                  ))}
-                                </div>
-                                <span className="text-sm text-muted-foreground">{review.date}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <p className="mt-3 leading-relaxed text-muted-foreground">{review.review}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                  <div className="text-center text-muted-foreground py-12">
+                    <p>Student reviews will be available once the course launches.</p>
                   </div>
                 </TabsContent>
               </Tabs>
@@ -367,13 +319,12 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
               <CardContent className="p-8 text-center md:p-12">
                 <h2 className="font-serif text-3xl font-medium text-balance">Ready to Start Your Doula Journey?</h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Join 1,250 students already enrolled
+                  Join {stats.students.toLocaleString()} students already enrolled
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                  <EnrollmentButton 
-                    courseSlug={slug} 
-                    size="lg"
-                  >Enroll Now - ${course.price || 497}</EnrollmentButton>
+                  <Button size="lg" disabled>
+                    Coming Soon - ${course.price}
+                  </Button>
                   <Button size="lg" variant="outline" asChild>
                     <Link href="/courses">View All Courses</Link>
                   </Button>

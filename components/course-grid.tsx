@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Clock, Award, Star } from "lucide-react"
+import EnrollmentButton from "@/components/enrollment-button"
 
 const courses = [
   {
@@ -76,9 +77,11 @@ export function CourseGrid() {
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Badge>{course.level}</Badge>
-                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
-                    Coming Soon
-                  </Badge>
+                  {course.id !== "complete-doula-certification" && (
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
+                      Coming Soon
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 text-sm">
                   <Star className="h-4 w-4 fill-primary text-primary" />
@@ -104,11 +107,21 @@ export function CourseGrid() {
               <div className="mt-6 flex items-center justify-between">
                 <div>
                   <p className="font-serif text-2xl font-medium">${course.price}</p>
-                  <p className="text-xs text-muted-foreground">Enrollment opens soon</p>
+                  {course.id !== "complete-doula-certification" && (
+                    <p className="text-xs text-muted-foreground">Enrollment opens soon</p>
+                  )}
                 </div>
-                <Button asChild>
-                  <Link href={`/courses/${course.slug}`}>View Details</Link>
-                </Button>
+                <div className="flex gap-2">
+                  {course.id === "complete-doula-certification" && (
+                    <EnrollmentButton 
+                      courseSlug={course.slug}
+                      size="sm"
+                    >Enroll Now</EnrollmentButton>
+                  )}
+                  <Button variant={course.id === "complete-doula-certification" ? "outline" : "default"} size="sm" asChild>
+                    <Link href={`/courses/${course.slug}`}>View Details</Link>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

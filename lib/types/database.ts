@@ -12,11 +12,25 @@ export interface Course {
   title: string
   slug: string
   description: string | null
+  long_description: string | null
   price: number | null
   duration_hours: number | null
   level: "beginner" | "intermediate" | "advanced" | null
-  image_url: string | null
-  is_active: boolean
+  thumbnail_url: string | null
+  is_published: boolean
+  certification_included: boolean
+  instructor_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Instructor {
+  id: string
+  name: string
+  title: string | null
+  bio: string | null
+  avatar_url: string | null
+  email: string | null
   created_at: string
   updated_at: string
 }

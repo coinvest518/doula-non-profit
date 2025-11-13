@@ -1,6 +1,3 @@
--- Enable RLS
-ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
-
 -- Create profiles table
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
@@ -53,6 +50,9 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.enrollments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.certifications ENABLE ROW LEVEL SECURITY;
+
+-- Add is_active column to courses if it doesn't exist
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 
 -- Create RLS policies
 CREATE POLICY "Users can view own profile" ON public.profiles
