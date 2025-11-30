@@ -19,37 +19,50 @@ export function DashboardOverview() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true)
-      const supabase = getSupabaseBrowserClient()
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      setUser(currentUser)
-      if (!currentUser) {
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        setUser(currentUser)
+        
+        if (!currentUser) {
+          setLoading(false)
+          return
+        }
+        
+        const { data: enrollments, error: enrollError } = await supabase
+          .from("enrollments")
+          .select("*, course:courses(*)")
+          .eq("user_id", currentUser.id)
+        
+        if (!enrollError && enrollments) {
+          setEnrolledCourses(
+            enrollments.map((enrollment: any) => ({
+              ...enrollment.course,
+              progress: enrollment.progress_percentage || 0,
+            }))
+          )
+        }
+        
+        const { data: certs, error: certError } = await supabase
+          .from("certifications")
+          .select("*")
+          .eq("user_id", currentUser.id)
+        
+        if (!certError && certs) {
+          setCertifications(certs)
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+      } finally {
         setLoading(false)
-        return
       }
-      // Fetch enrollments with course info
-      const { data: enrollments } = await supabase
-        .from("enrollments")
-        .select("*, course:courses(*)")
-        .eq("user_id", currentUser.id)
-      setEnrolledCourses(
-        (enrollments || []).map((enrollment: any) => ({
-          ...enrollment.course,
-          progress: enrollment.progress_percentage || 0, // Use database progress
-        }))
-      )
-      // Fetch certifications
-      const { data: certs } = await supabase
-        .from("certifications")
-        .select("*")
-        .eq("user_id", currentUser.id);
-      setCertifications(certs || []);
-    };
-    fetchData();
-  }, []);
+    }
+    
+    fetchData()
+  }, [])
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="container mx-auto px-4 py-8">Loading...</div>
   }
 
   return (
@@ -58,7 +71,7 @@ export function DashboardOverview() {
         <h1 className="font-serif text-3xl font-medium">Welcome{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ""}</h1>
         <p className="mt-2 text-muted-foreground">Continue your learning journey</p>
       </div>
-      {/* Stats Grid */}
+      
       <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="flex items-center gap-4 p-6">
@@ -83,7 +96,7 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
       </div>
-      {/* Continue Learning */}
+      
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_400px]">
         <div className="space-y-8">
           <div>
@@ -94,7 +107,16 @@ export function DashboardOverview() {
               </Button>
             </div>
             <div className="space-y-4">
-              {enrolledCourses.length === 0 && <div>No active courses yet.</div>}
+              {enrolledCourses.length === 0 && (
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <p className="text-muted-foreground">No active courses yet. Browse available courses to get started.</p>
+                    <Button className="mt-4" asChild>
+                      <Link href="/courses">Browse Courses</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
               {enrolledCourses.map((course) => (
                 <Card key={course.id} className="overflow-hidden">
                   <div className="flex flex-col md:flex-row">
@@ -132,7 +154,7 @@ export function DashboardOverview() {
             </div>
           </div>
         </div>
-        {/* Sidebar */}
+        
         <div className="space-y-6">
           <div>
             <h2 className="mb-4 font-serif text-2xl font-medium">AI Assistant</h2>
@@ -141,5 +163,5 @@ export function DashboardOverview() {
         </div>
       </div>
     </div>
-  );
+  )
 }
