@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, ExternalLink } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { createEnrollmentLink, createAnonymousPaymentLink } from "@/lib/payment/stripe-links";
+import { createEnrollmentLink } from "@/lib/payment/stripe-links";
+import { checkCourseEnrollment } from "@/lib/supabase/user-enrollment";
 import Link from "next/link";
 
 interface EnrollmentButtonProps {
@@ -28,48 +29,36 @@ export default function EnrollmentButton({
   const supabase = getSupabaseBrowserClient();
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkUserAndEnrollment = async () => {
       try {
-        // Check if user is authenticated
         const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!isMounted) return;
         setUser(currentUser);
 
         if (currentUser) {
-          // Check if user is already enrolled
-          const { data: course } = await supabase
-            .from('courses')
-            .select('id')
-            .eq('slug', courseSlug)
-            .single();
-
-          if (course) {
-            const { data: enrollment } = await (supabase as any)
-              .from('enrollments')
-              .select('*')
-              .eq('user_id', currentUser.id)
-              .eq('course_id', course.id)
-              .single();
-
-            setIsEnrolled(!!enrollment);
-          }
+          const enrolled = await checkCourseEnrollment(supabase, currentUser.id, courseSlug);
+          if (isMounted) setIsEnrolled(enrolled);
         }
       } catch (error) {
         console.error('Error checking enrollment:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     checkUserAndEnrollment();
+    return () => {
+      isMounted = false;
+    };
   }, [courseSlug, supabase]);
 
   const handleEnrollment = () => {
     if (user) {
-      // User is authenticated - create payment link with tracking
       const paymentUrl = createEnrollmentLink(user);
       window.open(paymentUrl, '_blank');
     } else {
-      // User not authenticated - redirect to signup first
       window.location.href = '/signup';
     }
   };
@@ -83,7 +72,6 @@ export default function EnrollmentButton({
     );
   }
 
-  // If user is already enrolled, show "Continue Learning" button
   if (isEnrolled) {
     return (
       <Button size={size} variant={variant} className={className} asChild>
@@ -94,7 +82,6 @@ export default function EnrollmentButton({
     );
   }
 
-  // If user is authenticated but not enrolled
   if (user) {
     return (
       <Button 
@@ -109,7 +96,6 @@ export default function EnrollmentButton({
     );
   }
 
-  // User not authenticated - redirect to signup
   return (
     <Button 
       size={size} 
