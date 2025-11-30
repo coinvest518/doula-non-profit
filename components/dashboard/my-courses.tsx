@@ -1,3 +1,6 @@
+
+import { useEffect, useState } from "react"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -6,40 +9,54 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { PlayCircle, Clock, Award } from "lucide-react"
 
-const activeCourses = [
-  {
-    id: "1",
-    title: "Complete Doula Certification Program",
-    progress: 65,
-    totalLessons: 25,
-    completedLessons: 16,
-    totalHours: 40,
-    thumbnail: "/doula-certification-training-classroom.jpg",
-    level: "Beginner",
-  },
-  {
-    id: "2",
-    title: "Lactation Support Fundamentals",
-    progress: 30,
-    totalLessons: 12,
-    completedLessons: 4,
-    totalHours: 15,
-    thumbnail: "/lactation-support-training.jpg",
-    level: "Beginner",
-  },
-]
-
-const completedCourses = [
-  {
-    id: "3",
-    title: "Birth Plan Development Workshop",
-    completedDate: "March 15, 2024",
-    certificateId: "CERT-2024-001",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-  },
-]
-
 export function MyCourses() {
+  const [activeCourses, setActiveCourses] = useState<any[]>([])
+  const [completedCourses, setCompletedCourses] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setLoading(true)
+      const supabase = getSupabaseBrowserClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      // Fetch enrollments with course info
+      const { data: enrollments } = await supabase
+        .from("enrollments")
+        .select("*, course:courses(*)")
+        .eq("user_id", user.id)
+      const active = []
+      const completed = []
+      for (const enrollment of enrollments || []) {
+        if (enrollment.completed_at) {
+          completed.push({
+            ...enrollment.course,
+            completedDate: enrollment.completed_at,
+          })
+        } else {
+          active.push({
+            ...enrollment.course,
+            progress: enrollment.progress_percentage,
+            totalHours: enrollment.course?.duration_hours,
+            thumbnail: enrollment.course?.thumbnail_url,
+            level: enrollment.course?.level,
+          })
+        }
+      }
+      setActiveCourses(active)
+      setCompletedCourses(completed)
+      setLoading(false)
+    }
+    fetchCourses()
+  }, [])
+
+  if (loading) {
+    return <div>Loading courses...</div>
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -55,6 +72,7 @@ export function MyCourses() {
 
         <TabsContent value="active" className="mt-6">
           <div className="grid gap-6 md:grid-cols-2">
+            {activeCourses.length === 0 && <div>No active courses yet.</div>}
             {activeCourses.map((course) => (
               <Card key={course.id} className="overflow-hidden">
                 <div className="aspect-video bg-muted">
@@ -71,12 +89,10 @@ export function MyCourses() {
                   <div className="mt-4 space-y-3">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
-                        {course.completedLessons} of {course.totalLessons} lessons
+                        Progress: {course.progress || 0}%
                       </span>
-                      <span className="font-medium">{course.progress}%</span>
                     </div>
-                    <Progress value={course.progress} className="h-2" />
-
+                    <Progress value={course.progress || 0} className="h-2" />
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />

@@ -187,7 +187,7 @@ export function QuizTake({ moduleId, courseId, onComplete, attemptNumber = 1 }: 
     }
   };
 
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = async () => {
     if (!quiz) return;
     
     // Calculate results
@@ -221,6 +221,39 @@ export function QuizTake({ moduleId, courseId, onComplete, attemptNumber = 1 }: 
       totalPoints,
       earnedPoints
     };
+
+    // Save quiz attempt to database
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Get attempt number
+        const { data: existingAttempts } = await supabase
+          .from('quiz_attempts')
+          .select('attempt_number')
+          .eq('user_id', user.id)
+          .eq('module_id', moduleId)
+          .order('attempt_number', { ascending: false })
+          .limit(1);
+
+        const attemptNumber = (existingAttempts?.[0]?.attempt_number || 0) + 1;
+
+        await supabase
+          .from('quiz_attempts')
+          .insert({
+            user_id: user.id,
+            module_id: moduleId,
+            course_id: courseId,
+            score,
+            total_points: totalPoints,
+            passed,
+            attempt_number: attemptNumber,
+            completed_at: new Date().toISOString(),
+            answers: answers
+          });
+      }
+    } catch (error) {
+      console.error('Error saving quiz attempt:', error);
+    }
 
     setResults(quizResults);
     setShowResults(true);

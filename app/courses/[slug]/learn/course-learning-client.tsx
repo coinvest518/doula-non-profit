@@ -11,6 +11,7 @@ import { CourseVideosSection } from "@/components/course-videos-section";
 import { QuizTake } from "@/components/quiz-take";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EnrollmentButton from "@/components/enrollment-button";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function isValidVideoUrl(url: string): boolean {
     try {
@@ -94,10 +95,41 @@ export function CourseLearningClient({ course, isPreview = false }: CourseLearni
     );
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
     const [isClient, setIsClient] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    const supabase = getSupabaseBrowserClient();
 
     useEffect(() => {
         setIsClient(true);
-    }, []);
+        
+        // Load user and existing progress
+        const loadUserAndProgress = async () => {
+            try {
+                const { data: { user: currentUser } } = await supabase.auth.getUser();
+                setUser(currentUser);
+                
+                if (currentUser && !isPreview) {
+                    // Load existing lesson progress
+                    const { data: progressData } = await supabase
+                        .from('lesson_progress')
+                        .select('lesson_id')
+                        .eq('user_id', currentUser.id);
+                    
+                    if (progressData) {
+                        const completedSet = new Set(progressData.map(p => p.lesson_id));
+                        setCompletedLessons(completedSet);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading progress:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        loadUserAndProgress();
+    }, [course.id, isPreview, supabase]);
 
     const handleLessonClick = (lesson: any, moduleTitle: string) => {
         // In preview mode, only allow access to free preview lessons (using video config)
@@ -128,14 +160,114 @@ export function CourseLearningClient({ course, isPreview = false }: CourseLearni
                DEFAULT_VIDEO_URL;
     };
 
-    const handleToggleComplete = (lessonId: string) => {
+    const handleToggleComplete = async (lessonId: string) => {
+        if (!user || isPreview) return;
+        
+        const wasCompleted = completedLessons.has(lessonId);
         const newCompleted = new Set(completedLessons);
-        if (newCompleted.has(lessonId)) {
-            newCompleted.delete(lessonId);
-        } else {
-            newCompleted.add(lessonId);
+        
+        try {
+            if (wasCompleted) {
+                // Remove from completed
+                newCompleted.delete(lessonId);
+                await supabase
+                    .from('lesson_progress')
+                    .delete()
+                    .eq('user_id', user.id)
+                    .eq('lesson_id', lessonId);
+            } else {
+                // Add to completed
+                newCompleted.add(lessonId);
+                await supabase
+                    .from('lesson_progress')
+                    .upsert({
+                        user_id: user.id,
+                        lesson_id: lessonId,
+                        completed: true,
+                        completed_at: new Date().toISOString()
+                    });
+            }
+            
+            setCompletedLessons(newCompleted);
+            
+            // Update enrollment progress
+            await updateEnrollmentProgress(newCompleted);
+            
+            // Check for course completion and issue certification
+            await checkCourseCompletion(newCompleted);
+            
+        } catch (error) {
+            console.error('Error updating lesson progress:', error);
         }
-        setCompletedLessons(newCompleted);
+    };
+
+    const updateEnrollmentProgress = async (completedSet: Set<string>) => {
+        if (!user) return;
+        
+        const totalLessons = course.course_modules?.reduce((acc, module) => acc + (module.course_lessons?.length || 0), 0) || 0;
+        const progressPercentage = totalLessons > 0 ? Math.round((completedSet.size / totalLessons) * 100) : 0;
+        
+        try {
+            await supabase
+                .from('enrollments')
+                .update({ 
+                    progress_percentage: progressPercentage,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('user_id', user.id)
+                .eq('course_id', course.id);
+        } catch (error) {
+            console.error('Error updating enrollment progress:', error);
+        }
+    };
+
+    const checkCourseCompletion = async (completedSet: Set<string>) => {
+        if (!user) return;
+        
+        const totalLessons = course.course_modules?.reduce((acc, module) => acc + (module.course_lessons?.length || 0), 0) || 0;
+        const isCompleted = completedSet.size === totalLessons && totalLessons > 0;
+        
+        if (isCompleted) {
+            try {
+                // Update enrollment as completed
+                await supabase
+                    .from('enrollments')
+                    .update({ 
+                        completed_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('user_id', user.id)
+                    .eq('course_id', course.id);
+                
+                // Check if certification already exists
+                const { data: existingCert } = await supabase
+                    .from('certifications')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('course_id', course.id)
+                    .single();
+                
+                if (!existingCert) {
+                    // Generate certificate number
+                    const certificateNumber = `CERT-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+                    
+                    // Issue certification
+                    await supabase
+                        .from('certifications')
+                        .insert({
+                            user_id: user.id,
+                            course_id: course.id,
+                            certificate_number: certificateNumber,
+                            issued_at: new Date().toISOString()
+                        });
+                    
+                    // Could trigger email notification here
+                    console.log('Certification issued:', certificateNumber);
+                }
+            } catch (error) {
+                console.error('Error completing course:', error);
+            }
+        }
     };
 
     const totalLessons = course.course_modules?.reduce((acc, module) => acc + (module.course_lessons?.length || 0), 0) || 0;
@@ -149,10 +281,20 @@ export function CourseLearningClient({ course, isPreview = false }: CourseLearni
         <div className="flex w-full flex-1">
             {/* Main Content (Left) */}
             <div className="flex-1 p-6 lg:p-8">
-                <div className="mb-4 text-sm text-muted-foreground">
-                    <span>{isPreview ? 'Course Preview' : 'My Course'} &gt; </span>
-                    <span className="text-foreground">{course.title}</span>
-                </div>
+                {loading ? (
+                    <div className="flex items-center justify-center p-8">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                            <h3 className="text-lg font-semibold">Loading your progress...</h3>
+                            <p className="text-muted-foreground">Please wait while we load your course data</p>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="mb-4 text-sm text-muted-foreground">
+                            <span>{isPreview ? 'Course Preview' : 'My Course'} &gt; </span>
+                            <span className="text-foreground">{course.title}</span>
+                        </div>
                 
                 {isPreview && (
                     <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg">
@@ -437,5 +579,7 @@ export function CourseLearningClient({ course, isPreview = false }: CourseLearni
                 </div>
             </div>
         </div>
+                    </>
+                )}
     );
 }

@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS enrollments (
   progress_percentage INTEGER DEFAULT 0,
   payment_status TEXT CHECK (payment_status IN ('pending', 'completed', 'failed')),
   stripe_payment_id TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, course_id)
 );
 
@@ -84,21 +85,20 @@ CREATE TABLE IF NOT EXISTS certifications (
   UNIQUE(user_id, course_id)
 );
 
--- Digital products
-CREATE TABLE IF NOT EXISTS digital_products (
+-- Quiz attempts table
+CREATE TABLE IF NOT EXISTS quiz_attempts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  slug TEXT UNIQUE NOT NULL,
-  description TEXT,
-  price DECIMAL(10, 2) NOT NULL,
-  thumbnail_url TEXT,
-  file_url TEXT,
-  file_type TEXT,
-  category TEXT,
-  is_published BOOLEAN DEFAULT false,
-  download_count INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  module_id UUID REFERENCES course_modules(id) ON DELETE CASCADE,
+  course_id UUID REFERENCES courses(id) ON DELETE CASCADE,
+  score INTEGER NOT NULL,
+  total_points INTEGER NOT NULL,
+  passed BOOLEAN NOT NULL,
+  attempt_number INTEGER DEFAULT 1,
+  started_at TIMESTAMPTZ DEFAULT NOW(),
+  completed_at TIMESTAMPTZ,
+  answers JSONB, -- Store user answers
+  UNIQUE(user_id, module_id, attempt_number)
 );
 
 -- Digital product purchases
@@ -121,6 +121,7 @@ ALTER TABLE course_lessons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE enrollments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lesson_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE certifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE quiz_attempts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE digital_products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_purchases ENABLE ROW LEVEL SECURITY;
 
@@ -157,6 +158,20 @@ CREATE POLICY "Users can view their own certifications" ON certifications
 CREATE POLICY "Anyone can view published products" ON digital_products
   FOR SELECT USING (is_published = true);
 
--- RLS Policies for product purchases
-CREATE POLICY "Users can view their own purchases" ON product_purchases
+-- RLS Policies for quiz attempts
+CREATE POLICY "Users can view their own quiz attempts" ON quiz_attempts
   FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create their own quiz attempts" ON quiz_attempts
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id);
+CREATE INDEX IF NOT EXISTS idx_enrollments_course_id ON enrollments(course_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_id ON lesson_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_lesson_id ON lesson_progress(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_certifications_user_id ON certifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_certifications_course_id ON certifications(course_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user_id ON quiz_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_module_id ON quiz_attempts(module_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_course_id ON quiz_attempts(course_id);

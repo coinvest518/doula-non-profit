@@ -1,19 +1,38 @@
+
+import { useEffect, useState } from "react"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Award, Download, Share2, Calendar } from "lucide-react"
 
-const certifications = [
-  {
-    id: "CERT-2024-001",
-    courseName: "Complete Doula Certification Program",
-    issuedDate: "March 15, 2024",
-    expiryDate: "March 15, 2027",
-    status: "active",
-  },
-]
-
 export function MyCertifications() {
+  const [certifications, setCertifications] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchCerts = async () => {
+      setLoading(true)
+      const supabase = getSupabaseBrowserClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      const { data: certs } = await supabase
+        .from("certifications")
+        .select("*, course:courses(title)")
+        .eq("user_id", user.id)
+      setCertifications(certs || [])
+      setLoading(false)
+    }
+    fetchCerts()
+  }, [])
+
+  if (loading) {
+    return <div>Loading certifications...</div>
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -33,27 +52,29 @@ export function MyCertifications() {
                 </div>
               </div>
               <CardContent className="p-6">
-                <Badge className="mb-3" variant={cert.status === "active" ? "default" : "secondary"}>
-                  {cert.status === "active" ? "Active" : "Expired"}
+                <Badge className="mb-3" variant={cert.is_valid ? "default" : "secondary"}>
+                  {cert.is_valid ? "Active" : "Expired"}
                 </Badge>
-                <h3 className="font-serif text-lg font-medium text-balance">{cert.courseName}</h3>
+                <h3 className="font-serif text-lg font-medium text-balance">{cert.course?.title || "Course"}</h3>
 
                 <div className="mt-4 space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>Issued: {cert.issuedDate}</span>
+                    <span>Issued: {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString() : "-"}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>Expires: {cert.expiryDate}</span>
+                    <span>Expires: {cert.expires_at ? new Date(cert.expires_at).toLocaleDateString() : "-"}</span>
                   </div>
-                  <p className="text-muted-foreground">ID: {cert.id}</p>
+                  <p className="text-muted-foreground">ID: {cert.certificate_number}</p>
                 </div>
 
                 <div className="mt-6 flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download
+                  <Button variant="outline" size="sm" className="flex-1 bg-transparent" asChild>
+                    <a href={cert.pdf_url || "#"} target="_blank" rel="noopener noreferrer">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </a>
                   </Button>
                   <Button variant="outline" size="sm" className="flex-1 bg-transparent">
                     <Share2 className="mr-2 h-4 w-4" />
