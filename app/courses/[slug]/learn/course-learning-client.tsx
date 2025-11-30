@@ -65,35 +65,46 @@ export function CourseLearningClient({ course, isPreview = false }: CourseLearni
     );
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
     const [user, setUser] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!isPreview);
 
     const supabase = getSupabaseBrowserClient();
 
     useEffect(() => {
+        if (isPreview) {
+            setLoading(false);
+            return;
+        }
+
+        let isMounted = true;
         const loadUserAndProgress = async () => {
             try {
                 const { data: { user: currentUser } } = await supabase.auth.getUser();
+                if (!isMounted) return;
                 setUser(currentUser);
                 
-                if (currentUser && !isPreview) {
-                    const { data: progressData } = await supabase
+                if (currentUser) {
+                    const { data: progressData, error } = await supabase
                         .from('lesson_progress')
                         .select('lesson_id')
                         .eq('user_id', currentUser.id);
                     
-                    if (progressData) {
+                    if (!isMounted) return;
+                    if (!error && progressData) {
                         setCompletedLessons(new Set(progressData.map(p => p.lesson_id)));
                     }
                 }
             } catch (error) {
                 console.error('Error loading progress:', error);
             } finally {
-                setLoading(false);
+                if (isMounted) setLoading(false);
             }
         };
         
         loadUserAndProgress();
-    }, [course.id, isPreview, supabase]);
+        return () => {
+            isMounted = false;
+        };
+    }, [course.id, isPreview]);
 
     const handleLessonClick = (lesson: any, moduleTitle: string) => {
         const isFreePreview = isLessonFreePreview(course.slug, moduleTitle, lesson.title);
