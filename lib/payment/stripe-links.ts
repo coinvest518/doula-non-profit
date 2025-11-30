@@ -13,19 +13,21 @@ interface PaymentLinkOptions {
 /**
  * Creates a payment link URL with user tracking and custom redirect URLs
  */
-export function createPaymentLink(options: PaymentLinkOptions = {}): string {
+export function createPaymentLink(options: PaymentLinkOptions = {}, courseSlug?: string): string {
   const { userId, userEmail } = options;
 
   const url = new URL(STRIPE_PAYMENT_LINK);
   
-  // Add user tracking via client_reference_id
   if (userId) {
     url.searchParams.append('client_reference_id', userId);
   }
   
-  // Prefill customer information if available
   if (userEmail) {
     url.searchParams.append('prefilled_email', userEmail);
+  }
+  
+  if (courseSlug) {
+    url.searchParams.append('metadata[course_slug]', courseSlug);
   }
   
   return url.toString();
@@ -34,11 +36,11 @@ export function createPaymentLink(options: PaymentLinkOptions = {}): string {
 /**
  * Creates enrollment link for authenticated users
  */
-export function createEnrollmentLink(user: { id: string; email?: string; user_metadata?: { full_name?: string } }): string {
+export function createEnrollmentLink(user: { id: string; email?: string; user_metadata?: { full_name?: string } }, courseSlug?: string): string {
   return createPaymentLink({
     userId: user.id,
     userEmail: user.email || ''
-  });
+  }, courseSlug);
 }
 
 /**

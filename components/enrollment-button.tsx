@@ -56,7 +56,7 @@ export default function EnrollmentButton({
 
   const handleEnrollment = () => {
     if (user) {
-      const paymentUrl = createEnrollmentLink(user);
+      const paymentUrl = createEnrollmentLink(user, courseSlug);
       window.open(paymentUrl, '_blank');
     } else {
       window.location.href = '/signup';

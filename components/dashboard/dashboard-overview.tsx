@@ -17,48 +17,50 @@ export function DashboardOverview() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const supabase = getSupabaseBrowserClient()
-        const { data: { user: currentUser } } = await supabase.auth.getUser()
-        setUser(currentUser)
-        
-        if (!currentUser) {
-          setLoading(false)
-          return
-        }
-        
-        const { data: enrollments, error: enrollError } = await supabase
-          .from("enrollments")
-          .select("*, course:courses(*)")
-          .eq("user_id", currentUser.id)
-        
-        if (!enrollError && enrollments) {
-          setEnrolledCourses(
-            enrollments.map((enrollment: any) => ({
-              ...enrollment.course,
-              progress: enrollment.progress_percentage || 0,
-            }))
-          )
-        }
-        
-        const { data: certs, error: certError } = await supabase
-          .from("certifications")
-          .select("*")
-          .eq("user_id", currentUser.id)
-        
-        if (!certError && certs) {
-          setCertifications(certs)
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error)
-      } finally {
+  const fetchData = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient()
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      setUser(currentUser)
+      
+      if (!currentUser) {
         setLoading(false)
+        return
       }
+      
+      const { data: enrollments, error: enrollError } = await supabase
+        .from("enrollments")
+        .select("*, course:courses(*)")
+        .eq("user_id", currentUser.id)
+      
+      if (!enrollError && enrollments) {
+        setEnrolledCourses(
+          enrollments.map((enrollment: any) => ({
+            ...enrollment.course,
+            progress: enrollment.progress_percentage || 0,
+          }))
+        )
+      }
+      
+      const { data: certs, error: certError } = await supabase
+        .from("certifications")
+        .select("*")
+        .eq("user_id", currentUser.id)
+      
+      if (!certError && certs) {
+        setCertifications(certs)
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
     }
-    
+  }
+
+  useEffect(() => {
     fetchData()
+    const interval = setInterval(fetchData, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   if (loading) {
