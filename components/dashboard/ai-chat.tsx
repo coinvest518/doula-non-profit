@@ -77,39 +77,35 @@ export function AIChat() {
   }
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader>
+    <Card className="h-[600px] flex flex-col overflow-hidden">
+      <CardHeader className="border-b">
         <CardTitle className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-primary" />
           Doula AI Assistant
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
+      <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+        <ScrollArea className="flex-1 w-full">
+          <div className="space-y-4 p-4">
             {messages.map((message, index) => (
               <div
                 key={index}
                 className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`flex gap-2 max-w-[85%] min-w-0 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`flex gap-2 max-w-xs ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                   <div className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${
                     message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
                   }`}>
                     {message.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                   </div>
-                  <div className={`rounded-lg p-3 min-w-0 max-w-full overflow-hidden ${
+                  <div className={`rounded-lg p-3 ${
                     message.role === 'user' 
                       ? 'bg-primary text-primary-foreground' 
                       : 'bg-muted'
                   }`}>
-                    <div className="text-sm space-y-2 break-words overflow-wrap-anywhere whitespace-pre-wrap">
-                      {message.content.split('\n').map((line, i) => (
-                        <p key={i} className={line.trim() === '' ? 'h-2' : 'break-words overflow-hidden'}>
-                          {line}
-                        </p>
-                      ))}
-                    </div>
+                    <p className="text-sm whitespace-normal break-words">
+                      {message.content}
+                    </p>
                     <p className="text-xs opacity-70 mt-2">
                       {message.timestamp.toLocaleTimeString()}
                     </p>
@@ -119,11 +115,11 @@ export function AIChat() {
             ))}
             {isLoading && (
               <div className="flex gap-3 justify-start">
-                <div className="flex gap-2 max-w-[80%] min-w-0">
+                <div className="flex gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted flex-shrink-0">
                     <Bot className="h-4 w-4" />
                   </div>
-                  <div className="rounded-lg p-3 bg-muted overflow-hidden">
+                  <div className="rounded-lg p-3 bg-muted">
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span className="text-sm">Thinking...</span>
@@ -134,7 +130,7 @@ export function AIChat() {
             )}
           </div>
         </ScrollArea>
-        <div className="border-t p-4">
+        <div className="border-t p-4 bg-background">
           <div className="flex gap-2">
             <Input
               value={input}
@@ -142,8 +138,9 @@ export function AIChat() {
               onKeyPress={handleKeyPress}
               placeholder="Ask about pregnancy, birth, or postpartum care..."
               disabled={isLoading}
+              className="flex-1"
             />
-            <Button onClick={sendMessage} disabled={isLoading || !input.trim()}>
+            <Button onClick={sendMessage} disabled={isLoading || !input.trim()} size="icon">
               <Send className="h-4 w-4" />
             </Button>
           </div>
